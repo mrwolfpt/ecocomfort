@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoComfort — Live Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14181C;
+    --panel: #1C2228;
+    --panel-border: #2A323A;
+    --text-primary: #E8ECEF;
+    --text-secondary: #8B96A1;
+    --text-tertiary: #5A6570;
+    --blue: #3B82F6;
+    --blue-bg: rgba(59, 130, 246, 0.12);
+    --green: #22C55E;
+    --green-bg: rgba(34, 197, 94, 0.12);
+    --red: #EF4444;
+    --red-bg: rgba(239, 68, 68, 0.12);
+    --amber: #F5A623;
+    --amber-bg: rgba(245, 166, 35, 0.10);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 28px clamp(20px, 5vw, 56px) 20px;
+    border-bottom: 1px solid var(--panel-border);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .topbar h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .topbar h1 span {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    font-family: var(--mono);
+    font-size: 13px;
+    margin-left: 10px;
+  }
+
+  .status-line {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 0 rgba(34,197,94,0.6);
+    animation: pulse 2.2s infinite;
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
+
+  main {
+    padding: 28px clamp(20px, 5vw, 56px) 56px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 22px 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+
+  .node-name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .node-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .node-updated {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .readouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .readout {
+    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+  }
+
+  .readout.below   { background: var(--blue-bg);  border-color: rgba(59,130,246,0.25); }
+  .readout.inrange { background: var(--green-bg); border-color: rgba(34,197,94,0.25); }
+  .readout.above   { background: var(--red-bg);   border-color: rgba(239,68,68,0.25); }
+  .readout.unknown { background: rgba(255,255,255,0.03); border-color: var(--panel-border); }
+
+  .readout-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .readout-value {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .readout-value .unit {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 2px;
+  }
+
+  .readout-status {
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .readout.below .readout-status   { color: var(--blue); }
+  .readout.inrange .readout-status { color: var(--green); }
+  .readout.above .readout-status   { color: var(--red); }
+  .readout.unknown .readout-status { color: var(--text-tertiary); }
+
+  .pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--panel-border);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+
+  .pill.active {
+    color: var(--amber);
+    border-color: rgba(245,166,35,0.35);
+    background: var(--amber-bg);
+  }
+
+  .pill.active .dot { background: var(--amber); }
+
+  .energy-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--panel-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .energy-cell {
+    background: var(--panel);
+    padding: 12px 14px;
+  }
+
+  .energy-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .energy-value {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .energy-value.cost { color: var(--amber); }
+
+  .empty-state, .error-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .error-state { color: var(--red); }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-dot { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>EcoComfort<span>LIVE MONITOR</span></h1>
+  <div class="status-line"><span class="pulse-dot"></span><span id="status-text">Connecting…</span></div>
+</div>
+
+<main>
+  <div class="grid" id="grid">
+    <div class="empty-state">Loading sensor data…</div>
+  </div>
+</main>
+
+<footer>Auto-refreshes every 20s · Data from AWS IoT / TTN</footer>
+
+<script>
+// ---- Configuration ----
+// Replace with your actual API Gateway endpoint from the AWS console
+const API_BASE = "https://osyjy9xcae.execute-api.eu-west-1.amazonaws.com/default/ecocomfort-api";
+
+// Add every node's TTN device_id here as you deploy more nodes
+const NODE_IDS = ["core2-lora-1"];
+
+const NODE_LABELS = {
+  "core2-lora-1": "Node 1"
+};
+
+const REFRESH_MS = 20000;
+
+function statusClass(status) {
+  if (!status) return "unknown";
+  if (status === "Below range") return "below";
+  if (status === "In range") return "inrange";
+  if (status === "Above range") return "above";
+  return "unknown";
+}
+
+function fmt(value, digits = 1) {
+  if (value === null || value === undefined) return "—";
+  return Number(value).toFixed(digits);
+}
+
+function timeAgo(tsMs) {
+  const diff = Date.now() - Number(tsMs);
+  if (diff < 0) return "just now";
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  return `${h}h ago`;
+}
+
+function cardHTML(nodeId, data) {
+  if (!data || !data.latest) {
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="node-name">${NODE_LABELS[nodeId] || nodeId}</div>
+            <div class="node-id">${nodeId}</div>
+          </div>
+        </div>
+        <div class="empty-state" style="padding: 30px 0;">No data received yet</div>
+      </div>`;
+  }
+
+  const d = data.latest;
+  const tempClass = statusClass(d.temp_status);
+  const humClass = statusClass(d.humidity_status);
+  const machineOn = d.machine_power && Number(d.machine_power) > 0;
+  const lampOn = d.lamp_power && Number(d.lamp_power) > 0;
+
+  return `
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="node-name">${NODE_LABELS[nodeId] || nodeId}</div>
+          <div class="node-id">${nodeId}</div>
+        </div>
+        <div class="node-updated">${timeAgo(d.ts)}</div>
+      </div>
+
+      <div class="readouts">
+        <div class="readout ${tempClass}">
+          <div class="readout-label">Temperature (avg/10)</div>
+          <div class="readout-value">${fmt(d.avg_temp_10)}<span class="unit">°C</span></div>
+          <div class="readout-status">${d.temp_status || "Unknown"}</div>
+        </div>
+        <div class="readout ${humClass}">
+          <div class="readout-label">Humidity (avg/10)</div>
+          <div class="readout-value">${fmt(d.avg_humidity_10)}<span class="unit">%</span></div>
+          <div class="readout-status">${d.humidity_status || "Unknown"}</div>
+        </div>
+      </div>
+
+      <div class="pills">
+        <div class="pill ${machineOn ? 'active' : ''}"><span class="dot"></span>Machine ${machineOn ? '250W ON' : 'OFF'}</div>
+        <div class="pill ${lampOn ? 'active' : ''}"><span class="dot"></span>Lamp ${lampOn ? '15W ON' : 'OFF'}</div>
+      </div>
+
+      <div class="energy-strip">
+        <div class="energy-cell">
+          <div class="energy-label">Energy (last 10)</div>
+          <div class="energy-value">${fmt(d.total_energy_kwh_10, 4)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
+        </div>
+        <div class="energy-cell">
+          <div class="energy-label">Cost (last 10)</div>
+          <div class="energy-value cost">€${fmt(d.total_cost_eur_10, 4)}</div>
+        </div>
+        <div class="energy-cell">
+          <div class="energy-label">Lux level</div>
+          <div class="energy-value">${fmt(d.lux, 0)}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function fetchNode(nodeId) {
+  try {
+    const res = await fetch(`${API_BASE}?id=${encodeURIComponent(nodeId)}&limit=11`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error("Fetch failed for", nodeId, e);
+    return null;
+  }
+}
+
+async function refresh() {
+  const statusText = document.getElementById("status-text");
+  statusText.textContent = "Refreshing…";
+
+  const results = await Promise.all(NODE_IDS.map(fetchNode));
+
+  const grid = document.getElementById("grid");
+  grid.innerHTML = results.map((data, i) => cardHTML(NODE_IDS[i], data)).join("");
+
+  statusText.textContent = `Last updated ${new Date().toLocaleTimeString()}`;
+}
+
+refresh();
+setInterval(refresh, REFRESH_MS);
+</script>
+
+</body>
+</html>
