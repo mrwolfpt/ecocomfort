@@ -377,11 +377,16 @@ const NODE_LABELS = {
 
 const REFRESH_MS = 20000;
 
+// Helper function to handle unpredictable casing and whitespace from API
+function norm(s) {
+  return (s || "").toString().trim().toLowerCase();
+}
+
 function statusClass(status) {
-  if (!status) return "unknown";
-  if (status === "Below range") return "below";
-  if (status === "In range") return "inrange";
-  if (status === "Above range") return "above";
+  const s = norm(status);
+  if (s === "below range") return "below";
+  if (s === "in range") return "inrange";
+  if (s === "above range") return "above";
   return "unknown";
 }
 
@@ -401,30 +406,28 @@ function timeAgo(tsMs) {
   return `${h}h ago`;
 }
 
-// Builds the warning banner shown above the readouts for a node, mirroring
-// the same temp_status / humidity_status values that ecocomfort-process-reading
-// sends as a downlink (f_port 2) to the Core2. This is the web-side twin of
-// that downlink: same source data, same thresholds, just rendered here too
-// instead of only being visible on the device's own screen.
+// Builds the warning banner shown above the readouts for a node
 function warningBannerHTML(d) {
-  const tempBad = d.temp_status === "Above range" || d.temp_status === "Below range";
-  const humBad = d.humidity_status === "Above range" || d.humidity_status === "Below range";
+  const tStat = norm(d.temp_status);
+  const hStat = norm(d.humidity_status);
+
+  const tempBad = tStat === "above range" || tStat === "below range";
+  const humBad = hStat === "above range" || hStat === "below range";
 
   if (!tempBad && !humBad) return "";
 
-  // "Above range" -> hot/humid (red, more urgent); "Below range" -> cold/dry (amber)
-  const severity = (d.temp_status === "Above range" || d.humidity_status === "Above range")
-    ? "" : "amber";
+  // "above range" -> hot/humid (red, more urgent); "below range" -> cold/dry (amber)
+  const severity = (tStat === "above range" || hStat === "above range") ? "" : "amber";
 
   const actions = [];
-  if (d.temp_status === "Above range") actions.push("Open window / use AC");
-  if (d.temp_status === "Below range") actions.push("Close window / use heating");
-  if (d.humidity_status === "Above range") actions.push("Ventilate / dehumidify");
-  if (d.humidity_status === "Below range") actions.push("Use humidifier");
+  if (tStat === "above range") actions.push("Open window / use AC");
+  if (tStat === "below range") actions.push("Close window / use heating");
+  if (hStat === "above range") actions.push("Ventilate / dehumidify");
+  if (hStat === "below range") actions.push("Use humidifier");
 
   const parts = [];
-  if (tempBad) parts.push(`Temperature ${d.temp_status.toLowerCase()}`);
-  if (humBad) parts.push(`Humidity ${d.humidity_status.toLowerCase()}`);
+  if (tempBad) parts.push(`Temperature ${tStat}`);
+  if (humBad) parts.push(`Humidity ${hStat}`);
 
   return `
     <div class="warning-banner ${severity}">
@@ -456,8 +459,11 @@ function cardHTML(nodeId, data) {
   const humClass = statusClass(d.humidity_status);
   const machineOn = d.machine_power && Number(d.machine_power) > 0;
   const lampOn = d.lamp_power && Number(d.lamp_power) > 0;
-  const tempBad = d.temp_status === "Above range" || d.temp_status === "Below range";
-  const humBad = d.humidity_status === "Above range" || d.humidity_status === "Below range";
+  
+  const tStat = norm(d.temp_status);
+  const hStat = norm(d.humidity_status);
+  const tempBad = tStat === "above range" || tStat === "below range";
+  const humBad = hStat === "above range" || hStat === "below range";
 
   return `
     <div class="card">
