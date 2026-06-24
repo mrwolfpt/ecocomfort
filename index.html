@@ -131,6 +131,57 @@
     color: var(--text-tertiary);
   }
 
+  /* ---- Warning banner ---- */
+  .warning-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--red-bg);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+
+  .warning-banner.amber {
+    background: var(--amber-bg);
+    border-color: rgba(245,166,35,0.35);
+  }
+
+  .warning-banner .icon {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .warning-banner .body {
+    flex: 1;
+  }
+
+  .warning-banner .title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--red);
+    margin-bottom: 3px;
+  }
+
+  .warning-banner.amber .title { color: var(--amber); }
+
+  .warning-banner .detail {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .warning-banner .action {
+    font-size: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  /* ---- Readouts: current reading + rolling average side by side ---- */
   .readouts {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -157,6 +208,13 @@
     margin-bottom: 6px;
   }
 
+  .readout-values {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
   .readout-value {
     font-family: var(--mono);
     font-size: 28px;
@@ -169,6 +227,16 @@
     font-weight: 500;
     color: var(--text-secondary);
     margin-left: 2px;
+  }
+
+  .readout-avg {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .readout-avg .unit {
+    font-size: 11px;
   }
 
   .readout-status {
@@ -217,6 +285,14 @@
   }
 
   .pill.active .dot { background: var(--amber); }
+
+  .pill.warn {
+    color: var(--red);
+    border-color: rgba(239,68,68,0.35);
+    background: var(--red-bg);
+  }
+
+  .pill.warn .dot { background: var(--red); }
 
   .energy-strip {
     display: grid;
@@ -325,6 +401,42 @@ function timeAgo(tsMs) {
   return `${h}h ago`;
 }
 
+// Builds the warning banner shown above the readouts for a node, mirroring
+// the same temp_status / humidity_status values that ecocomfort-process-reading
+// sends as a downlink (f_port 2) to the Core2. This is the web-side twin of
+// that downlink: same source data, same thresholds, just rendered here too
+// instead of only being visible on the device's own screen.
+function warningBannerHTML(d) {
+  const tempBad = d.temp_status === "Above range" || d.temp_status === "Below range";
+  const humBad = d.humidity_status === "Above range" || d.humidity_status === "Below range";
+
+  if (!tempBad && !humBad) return "";
+
+  // "Above range" -> hot/humid (red, more urgent); "Below range" -> cold/dry (amber)
+  const severity = (d.temp_status === "Above range" || d.humidity_status === "Above range")
+    ? "" : "amber";
+
+  const actions = [];
+  if (d.temp_status === "Above range") actions.push("Open window / use AC");
+  if (d.temp_status === "Below range") actions.push("Close window / use heating");
+  if (d.humidity_status === "Above range") actions.push("Ventilate / dehumidify");
+  if (d.humidity_status === "Below range") actions.push("Use humidifier");
+
+  const parts = [];
+  if (tempBad) parts.push(`Temperature ${d.temp_status.toLowerCase()}`);
+  if (humBad) parts.push(`Humidity ${d.humidity_status.toLowerCase()}`);
+
+  return `
+    <div class="warning-banner ${severity}">
+      <div class="icon">⚠</div>
+      <div class="body">
+        <div class="title">Comfort warning</div>
+        <div class="detail">${parts.join(" · ")} (based on last ${10} readings)</div>
+        <div class="action">${actions.join("  ·  ")}</div>
+      </div>
+    </div>`;
+}
+
 function cardHTML(nodeId, data) {
   if (!data || !data.latest) {
     return `
@@ -344,6 +456,8 @@ function cardHTML(nodeId, data) {
   const humClass = statusClass(d.humidity_status);
   const machineOn = d.machine_power && Number(d.machine_power) > 0;
   const lampOn = d.lamp_power && Number(d.lamp_power) > 0;
+  const tempBad = d.temp_status === "Above range" || d.temp_status === "Below range";
+  const humBad = d.humidity_status === "Above range" || d.humidity_status === "Below range";
 
   return `
     <div class="card">
@@ -355,15 +469,23 @@ function cardHTML(nodeId, data) {
         <div class="node-updated">${timeAgo(d.ts)}</div>
       </div>
 
+      ${warningBannerHTML(d)}
+
       <div class="readouts">
         <div class="readout ${tempClass}">
-          <div class="readout-label">Temperature (avg/10)</div>
-          <div class="readout-value">${fmt(d.avg_temp_10)}<span class="unit">°C</span></div>
+          <div class="readout-label">Temperature</div>
+          <div class="readout-values">
+            <div class="readout-value">${fmt(d.last_temp)}<span class="unit">°C</span></div>
+            <div class="readout-avg">avg10: ${fmt(d.avg_temp_10)}<span class="unit">°C</span></div>
+          </div>
           <div class="readout-status">${d.temp_status || "Unknown"}</div>
         </div>
         <div class="readout ${humClass}">
-          <div class="readout-label">Humidity (avg/10)</div>
-          <div class="readout-value">${fmt(d.avg_humidity_10)}<span class="unit">%</span></div>
+          <div class="readout-label">Humidity</div>
+          <div class="readout-values">
+            <div class="readout-value">${fmt(d.last_humidity)}<span class="unit">%</span></div>
+            <div class="readout-avg">avg10: ${fmt(d.avg_humidity_10)}<span class="unit">%</span></div>
+          </div>
           <div class="readout-status">${d.humidity_status || "Unknown"}</div>
         </div>
       </div>
@@ -371,6 +493,8 @@ function cardHTML(nodeId, data) {
       <div class="pills">
         <div class="pill ${machineOn ? 'active' : ''}"><span class="dot"></span>Machine ${machineOn ? '250W ON' : 'OFF'}</div>
         <div class="pill ${lampOn ? 'active' : ''}"><span class="dot"></span>Lamp ${lampOn ? '15W ON' : 'OFF'}</div>
+        ${tempBad ? `<div class="pill warn"><span class="dot"></span>Temp warning sent</div>` : ``}
+        ${humBad ? `<div class="pill warn"><span class="dot"></span>Humidity warning sent</div>` : ``}
       </div>
 
       <div class="energy-strip">
