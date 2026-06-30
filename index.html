@@ -325,6 +325,69 @@
 
   .energy-value.cost { color: var(--amber); }
 
+  /* ---- Energy-vs-reference comparison row ---- */
+  .energy-compare {
+    margin-top: 10px;
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--panel-border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .energy-compare.over {
+    background: var(--red-bg);
+    border-color: rgba(239,68,68,0.35);
+  }
+
+  .energy-compare-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+
+  .energy-compare-values {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .energy-compare-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .energy-compare-item .ec-tag {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .energy-compare-item .ec-val {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .energy-compare.over .energy-compare-item.measured .ec-val { color: var(--red); }
+
+  .energy-compare-flag {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .empty-state, .error-state {
     grid-column: 1 / -1;
     text-align: center;
@@ -440,6 +503,35 @@ function warningBannerHTML(d) {
     </div>`;
 }
 
+// Builds the energy-vs-kitchen-reference comparison block: shows both the
+// measured value and the reference value side by side, and flags in red
+// when measured consumption exceeds the reference for this window.
+function energyCompareHTML(d) {
+  const measured = d.total_energy_kwh_10;
+  const reference = d.kitchen_reference_kwh_10;
+  const over = d.energy_above_reference === true;
+
+  if (measured === null || measured === undefined || reference === null || reference === undefined) {
+    return "";
+  }
+
+  return `
+    <div class="energy-compare ${over ? 'over' : ''}">
+      <div class="energy-compare-label">Energy vs. kitchen reference (last 10 readings)</div>
+      <div class="energy-compare-values">
+        <div class="energy-compare-item measured">
+          <div class="ec-tag">Measured</div>
+          <div class="ec-val">${fmt(measured, 5)} kWh</div>
+        </div>
+        <div class="energy-compare-item">
+          <div class="ec-tag">Reference</div>
+          <div class="ec-val">${fmt(reference, 5)} kWh</div>
+        </div>
+      </div>
+      ${over ? `<div class="energy-compare-flag">⚠ Above energy than average</div>` : ``}
+    </div>`;
+}
+
 function cardHTML(nodeId, data) {
   if (!data || !data.latest) {
     return `
@@ -464,6 +556,7 @@ function cardHTML(nodeId, data) {
   const hStat = norm(d.humidity_status);
   const tempBad = tStat === "above range" || tStat === "below range";
   const humBad = hStat === "above range" || hStat === "below range";
+  const energyOver = d.energy_above_reference === true;
 
   return `
     <div class="card">
@@ -501,6 +594,7 @@ function cardHTML(nodeId, data) {
         <div class="pill ${lampOn ? 'active' : ''}"><span class="dot"></span>Lamp ${lampOn ? '15W ON' : 'OFF'}</div>
         ${tempBad ? `<div class="pill warn"><span class="dot"></span>Temp warning sent</div>` : ``}
         ${humBad ? `<div class="pill warn"><span class="dot"></span>Humidity warning sent</div>` : ``}
+        ${energyOver ? `<div class="pill warn"><span class="dot"></span>Above energy than average</div>` : ``}
       </div>
 
       <div class="energy-strip">
@@ -517,6 +611,8 @@ function cardHTML(nodeId, data) {
           <div class="energy-value">${fmt(d.lux, 0)}</div>
         </div>
       </div>
+
+      ${energyCompareHTML(d)}
     </div>`;
 }
 
