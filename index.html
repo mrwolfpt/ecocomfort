@@ -46,102 +46,369 @@
     gap: 12px;
   }
 
-  .topbar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
-  .topbar h1 span { color: var(--text-tertiary); font-weight: 500; font-family: var(--mono); font-size: 13px; margin-left: 10px; }
+  .topbar h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
 
-  .status-line { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+  .topbar h1 span {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    font-family: var(--mono);
+    font-size: 13px;
+    margin-left: 10px;
+  }
+
+  .status-line {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
   .pulse-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: var(--green);
-    box-shadow: 0 0 0 0 rgba(34,197,94,0.6); animation: pulse 2.2s infinite;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 0 rgba(34,197,94,0.6);
+    animation: pulse 2.2s infinite;
   }
-  @keyframes pulse { 0% {box-shadow:0 0 0 0 rgba(34,197,94,0.5);} 70% {box-shadow:0 0 0 6px rgba(34,197,94,0);} 100% {box-shadow:0 0 0 0 rgba(34,197,94,0);} }
 
-  main { padding: 28px clamp(20px, 5vw, 56px) 56px; max-width: 1280px; margin: 0 auto; }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+  }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
+  main {
+    padding: 28px clamp(20px, 5vw, 56px) 56px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
 
-  .card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; padding: 22px 24px 20px; position: relative; overflow: hidden; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 20px;
+  }
 
-  .card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
-  .node-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
-  .node-id { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
-  .node-updated { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 22px 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
 
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+
+  .node-name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .node-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .node-updated {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  /* ---- Warning banner ---- */
   .warning-banner {
-    display: flex; align-items: flex-start; gap: 10px; background: var(--red-bg);
-    border: 1px solid rgba(239,68,68,0.35); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--red-bg);
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
   }
-  .warning-banner.amber { background: var(--amber-bg); border-color: rgba(245,166,35,0.35); }
-  .warning-banner .icon { font-size: 16px; line-height: 1.2; }
-  .warning-banner .body { flex: 1; }
-  .warning-banner .title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--red); margin-bottom: 3px; }
-  .warning-banner.amber .title { color: var(--amber); }
-  .warning-banner .detail { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
-  .warning-banner .action { font-size: 12px; color: var(--text-primary); font-weight: 500; margin-top: 4px; }
 
-  /* Readouts now show only the live instantaneous value - no rolling
-     avg10, since a last-10-readings average added no useful information
-     once classification itself moved to the instantaneous reading. */
-  .readouts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
-  .readout { border-radius: 8px; padding: 14px 16px; border: 1px solid transparent; }
+  .warning-banner.amber {
+    background: var(--amber-bg);
+    border-color: rgba(245,166,35,0.35);
+  }
+
+  .warning-banner .icon {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .warning-banner .body {
+    flex: 1;
+  }
+
+  .warning-banner .title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--red);
+    margin-bottom: 3px;
+  }
+
+  .warning-banner.amber .title { color: var(--amber); }
+
+  .warning-banner .detail {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .warning-banner .action {
+    font-size: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  /* ---- Readouts: current reading + rolling average side by side ---- */
+  .readouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .readout {
+    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+  }
+
   .readout.below   { background: var(--blue-bg);  border-color: rgba(59,130,246,0.25); }
   .readout.inrange { background: var(--green-bg); border-color: rgba(34,197,94,0.25); }
   .readout.above   { background: var(--red-bg);   border-color: rgba(239,68,68,0.25); }
   .readout.unknown { background: rgba(255,255,255,0.03); border-color: var(--panel-border); }
-  .readout-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 6px; }
-  .readout-values { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .readout-value { font-family: var(--mono); font-size: 28px; font-weight: 600; line-height: 1; }
-  .readout-value .unit { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-left: 2px; }
-  .readout-status { font-size: 11px; font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .readout-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .readout-values {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .readout-value {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .readout-value .unit {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 2px;
+  }
+
+  .readout-avg {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .readout-avg .unit {
+    font-size: 11px;
+  }
+
+  .readout-status {
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .readout.below .readout-status   { color: var(--blue); }
   .readout.inrange .readout-status { color: var(--green); }
   .readout.above .readout-status   { color: var(--red); }
   .readout.unknown .readout-status { color: var(--text-tertiary); }
 
-  .pills { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
-  .pill { font-family: var(--mono); font-size: 11px; padding: 5px 10px; border-radius: 100px; border: 1px solid var(--panel-border); color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
-  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-tertiary); }
-  .pill.active { color: var(--amber); border-color: rgba(245,166,35,0.35); background: var(--amber-bg); }
+  .pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--panel-border);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+
+  .pill.active {
+    color: var(--amber);
+    border-color: rgba(245,166,35,0.35);
+    background: var(--amber-bg);
+  }
+
   .pill.active .dot { background: var(--amber); }
-  .pill.warn { color: var(--red); border-color: rgba(239,68,68,0.35); background: var(--red-bg); }
+
+  .pill.warn {
+    color: var(--red);
+    border-color: rgba(239,68,68,0.35);
+    background: var(--red-bg);
+  }
+
   .pill.warn .dot { background: var(--red); }
 
-  .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin: 4px 0 8px; }
+  .energy-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--panel-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
 
-  .energy-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--panel-border); border-radius: 8px; overflow: hidden; }
-  .energy-cell { background: var(--panel); padding: 12px 14px; }
-  .energy-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 4px; }
-  .energy-value { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .energy-cell {
+    background: var(--panel);
+    padding: 12px 14px;
+  }
+
+  .energy-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+
+  .energy-value {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
   .energy-value.cost { color: var(--amber); }
 
-  .energy-compare { margin-top: 10px; border-radius: 8px; padding: 12px 14px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.02); }
-  .energy-compare.over { background: var(--red-bg); border-color: rgba(239,68,68,0.35); }
-  .energy-compare-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 8px; }
-  .energy-compare-values { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
-  .energy-compare-item { display: flex; flex-direction: column; gap: 2px; }
-  .energy-compare-item .ec-tag { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
-  .energy-compare-item .ec-val { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  /* ---- Energy-vs-reference comparison row ---- */
+  .energy-compare {
+    margin-top: 10px;
+    border-radius: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--panel-border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .energy-compare.over {
+    background: var(--red-bg);
+    border-color: rgba(239,68,68,0.35);
+  }
+
+  .energy-compare-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+
+  .energy-compare-values {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .energy-compare-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .energy-compare-item .ec-tag {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .energy-compare-item .ec-val {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
   .energy-compare.over .energy-compare-item.measured .ec-val { color: var(--red); }
-  .energy-compare-flag { margin-top: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--red); display: flex; align-items: center; gap: 6px; }
 
-  /* Windowed history log table */
-  .logs-table-wrap { margin-top: 18px; border: 1px solid var(--panel-border); border-radius: 8px; overflow: hidden; }
-  table.logs-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11.5px; }
-  table.logs-table th, table.logs-table td { padding: 7px 10px; text-align: right; white-space: nowrap; }
-  table.logs-table th:first-child, table.logs-table td:first-child { text-align: left; }
-  table.logs-table th { color: var(--text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9.5px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--panel-border); }
-  table.logs-table td { color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.03); }
-  table.logs-table tr:last-child td { border-bottom: none; }
-  table.logs-table td.flag-over { color: var(--red); font-weight: 600; }
-  .logs-empty { padding: 14px; text-align: center; color: var(--text-tertiary); font-size: 12px; }
+  .energy-compare-flag {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-  .empty-state, .error-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 14px; }
+  .empty-state, .error-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
   .error-state { color: var(--red); }
 
-  footer { text-align: center; padding: 20px; font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
 
-  @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-dot { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -157,12 +424,14 @@
   </div>
 </main>
 
-<footer>Auto-refreshes every 20s · Temperature/humidity are live readings · Energy/cost update once every 10 minutes</footer>
+<footer>Auto-refreshes every 20s · Data from AWS IoT / TTN</footer>
 
 <script>
 // ---- Configuration ----
+// Replace with your actual API Gateway endpoint from the AWS console
 const API_BASE = "https://osyjy9xcae.execute-api.eu-west-1.amazonaws.com/default/ecocomfort-api";
 
+// Add every node's TTN device_id here as you deploy more nodes
 const NODE_IDS = ["core2-lora-1", "core2-lora-2"];
 const NODE_LABELS = {
   "core2-lora-1": "Node 1",
@@ -170,9 +439,11 @@ const NODE_LABELS = {
 };
 
 const REFRESH_MS = 20000;
-const LOGS_TO_SHOW = 12; // most recent windows shown in the log table
 
-function norm(s) { return (s || "").toString().trim().toLowerCase(); }
+// Helper function to handle unpredictable casing and whitespace from API
+function norm(s) {
+  return (s || "").toString().trim().toLowerCase();
+}
 
 function statusClass(status) {
   const s = norm(status);
@@ -198,21 +469,17 @@ function timeAgo(tsMs) {
   return `${h}h ago`;
 }
 
-function fmtClock(tsMs) {
-  const d = new Date(Number(tsMs));
-  return d.toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-}
-
-// Warning banner: still purely a function of the LATEST instantaneous
-// temp_status / humidity_status, exactly as before - alerts never wait
-// for a 10-minute window to close.
+// Builds the warning banner shown above the readouts for a node
 function warningBannerHTML(d) {
   const tStat = norm(d.temp_status);
   const hStat = norm(d.humidity_status);
+
   const tempBad = tStat === "above range" || tStat === "below range";
   const humBad = hStat === "above range" || hStat === "below range";
+
   if (!tempBad && !humBad) return "";
 
+  // "above range" -> hot/humid (red, more urgent); "below range" -> cold/dry (amber)
   const severity = (tStat === "above range" || hStat === "above range") ? "" : "amber";
 
   const actions = [];
@@ -230,17 +497,18 @@ function warningBannerHTML(d) {
       <div class="icon">⚠</div>
       <div class="body">
         <div class="title">Comfort warning</div>
-        <div class="detail">${parts.join(" · ")} (based on latest reading)</div>
+        <div class="detail">${parts.join(" · ")} (based on last ${10} readings)</div>
         <div class="action">${actions.join("  ·  ")}</div>
       </div>
     </div>`;
 }
 
-// Energy-vs-kitchen-reference comparison, now sourced from the *windowed*
-// fields (only updated once per closed 10-min window).
+// Builds the energy-vs-kitchen-reference comparison block: shows both the
+// measured value and the reference value side by side, and flags in red
+// when measured consumption exceeds the reference for this window.
 function energyCompareHTML(d) {
-  const measured = d.total_energy_kwh_window;
-  const reference = d.kitchen_reference_kwh_window;
+  const measured = d.total_energy_kwh_10;
+  const reference = d.kitchen_reference_kwh_10;
   const over = d.energy_above_reference === true;
 
   if (measured === null || measured === undefined || reference === null || reference === undefined) {
@@ -249,7 +517,7 @@ function energyCompareHTML(d) {
 
   return `
     <div class="energy-compare ${over ? 'over' : ''}">
-      <div class="energy-compare-label">Energy vs. kitchen reference (last closed 10-min window)</div>
+      <div class="energy-compare-label">Energy vs. kitchen reference (last 10 readings)</div>
       <div class="energy-compare-values">
         <div class="energy-compare-item measured">
           <div class="ec-tag">Measured</div>
@@ -260,39 +528,7 @@ function energyCompareHTML(d) {
           <div class="ec-val">${fmt(reference, 5)} kWh</div>
         </div>
       </div>
-      ${over ? `<div class="energy-compare-flag">⚠ Above reference kitchen usage</div>` : ``}
-    </div>`;
-}
-
-function logsTableHTML(logs) {
-  if (!logs || logs.length === 0) {
-    return `<div class="logs-table-wrap"><div class="logs-empty">No completed 10-minute windows yet</div></div>`;
-  }
-  const rows = logs.slice(-LOGS_TO_SHOW).reverse().map(l => {
-    const over = l.energy_above_reference === true;
-    return `
-      <tr>
-        <td>${fmtClock(l.window_start_ts)}</td>
-        <td>${fmt(l.avg_temp, 1)}°C</td>
-        <td>${fmt(l.avg_humidity, 1)}%</td>
-        <td>${fmt(l.total_energy_kwh, 5)} kWh</td>
-        <td>€${fmt(l.total_cost_eur, 4)}</td>
-        <td>${l.sample_count ?? "—"}</td>
-        <td class="${over ? 'flag-over' : ''}">${over ? 'Above ref' : 'OK'}</td>
-      </tr>`;
-  }).join("");
-
-  return `
-    <div class="logs-table-wrap">
-      <table class="logs-table">
-        <thead>
-          <tr>
-            <th>Window start</th><th>Avg temp</th><th>Avg humidity</th>
-            <th>Energy</th><th>Cost</th><th>Samples</th><th>vs ref</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
+      ${over ? `<div class="energy-compare-flag">⚠ Above energy than average</div>` : ``}
     </div>`;
 }
 
@@ -315,7 +551,7 @@ function cardHTML(nodeId, data) {
   const humClass = statusClass(d.humidity_status);
   const machineOn = d.machine_power && Number(d.machine_power) > 0;
   const lampOn = d.lamp_power && Number(d.lamp_power) > 0;
-
+  
   const tStat = norm(d.temp_status);
   const hStat = norm(d.humidity_status);
   const tempBad = tStat === "above range" || tStat === "below range";
@@ -336,16 +572,18 @@ function cardHTML(nodeId, data) {
 
       <div class="readouts">
         <div class="readout ${tempClass}">
-          <div class="readout-label">Temperature (live)</div>
+          <div class="readout-label">Temperature</div>
           <div class="readout-values">
             <div class="readout-value">${fmt(d.last_temp)}<span class="unit">°C</span></div>
+            <div class="readout-avg">avg10: ${fmt(d.avg_temp_10)}<span class="unit">°C</span></div>
           </div>
           <div class="readout-status">${d.temp_status || "Unknown"}</div>
         </div>
         <div class="readout ${humClass}">
-          <div class="readout-label">Humidity (live)</div>
+          <div class="readout-label">Humidity</div>
           <div class="readout-values">
             <div class="readout-value">${fmt(d.last_humidity)}<span class="unit">%</span></div>
+            <div class="readout-avg">avg10: ${fmt(d.avg_humidity_10)}<span class="unit">%</span></div>
           </div>
           <div class="readout-status">${d.humidity_status || "Unknown"}</div>
         </div>
@@ -356,35 +594,31 @@ function cardHTML(nodeId, data) {
         <div class="pill ${lampOn ? 'active' : ''}"><span class="dot"></span>Lamp ${lampOn ? '15W ON' : 'OFF'}</div>
         ${tempBad ? `<div class="pill warn"><span class="dot"></span>Temp warning sent</div>` : ``}
         ${humBad ? `<div class="pill warn"><span class="dot"></span>Humidity warning sent</div>` : ``}
-        ${energyOver ? `<div class="pill warn"><span class="dot"></span>Above energy than reference</div>` : ``}
+        ${energyOver ? `<div class="pill warn"><span class="dot"></span>Above energy than average</div>` : ``}
       </div>
 
-      <div class="section-label">Last closed 10-minute window</div>
       <div class="energy-strip">
         <div class="energy-cell">
-          <div class="energy-label">Energy</div>
-          <div class="energy-value">${fmt(d.total_energy_kwh_window, 5)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
+          <div class="energy-label">Energy (last 10)</div>
+          <div class="energy-value">${fmt(d.total_energy_kwh_10, 4)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
         </div>
         <div class="energy-cell">
-          <div class="energy-label">Cost</div>
-          <div class="energy-value cost">€${fmt(d.total_cost_eur_window, 4)}</div>
+          <div class="energy-label">Cost (last 10)</div>
+          <div class="energy-value cost">€${fmt(d.total_cost_eur_10, 4)}</div>
         </div>
         <div class="energy-cell">
-          <div class="energy-label">Cumulative cost</div>
-          <div class="energy-value cost">€${fmt(d.cumulative_cost_eur, 4)}</div>
+          <div class="energy-label">Lux level</div>
+          <div class="energy-value">${fmt(d.lux, 0)}</div>
         </div>
       </div>
 
       ${energyCompareHTML(d)}
-
-      <div class="section-label" style="margin-top:18px;">Window history</div>
-      ${logsTableHTML(data.logs)}
     </div>`;
 }
 
 async function fetchNode(nodeId) {
   try {
-    const res = await fetch(`${API_BASE}?id=${encodeURIComponent(nodeId)}&limit=1&logs_limit=${LOGS_TO_SHOW}`);
+    const res = await fetch(`${API_BASE}?id=${encodeURIComponent(nodeId)}&limit=11`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
