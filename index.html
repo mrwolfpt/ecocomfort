@@ -96,7 +96,8 @@
 
   .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin: 4px 0 8px; }
 
-  .energy-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--panel-border); border-radius: 8px; overflow: hidden; }
+  .energy-strip { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--panel-border); border-radius: 8px; overflow: hidden; }
+  @media (min-width: 500px) { .energy-strip { grid-template-columns: repeat(4, 1fr); } }
   .energy-cell { background: var(--panel); padding: 12px 14px; }
   .energy-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: 4px; }
   .energy-value { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--text-primary); }
@@ -198,7 +199,7 @@ function fmtTime(tsMs) {
   return new Date(Number(tsMs)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 function fmtDay(tsMs) {
-  return new Date(Number(tsMs)).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  return new Date(Number(tsMs)).toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' });
 }
 function dayKey(tsMs) {
   const d = new Date(Number(tsMs));
@@ -330,9 +331,13 @@ function warningBannerHTML(d) {
 }
 
 function energyCompareHTML(d) {
-  const measured = d.last_closed_energy_kwh;
-  const reference = d.kitchen_reference_kwh_per_bucket;
-  const over = d.last_closed_energy_above_reference === true;
+  // Field names match what processor Lambda writes to ecocomfort_processed:
+  //   total_energy_kwh_window  — finalized energy for the last closed window
+  //   kitchen_reference_kwh_window — the 10-min reference constant
+  //   energy_above_reference   — boolean comparison result
+  const measured = d.total_energy_kwh_window;
+  const reference = d.kitchen_reference_kwh_window;
+  const over = d.energy_above_reference === true;
   if (measured === null || measured === undefined || reference === null || reference === undefined) return "";
   return `
     <div class="energy-compare ${over ? 'over' : ''}">
@@ -343,7 +348,7 @@ function energyCompareHTML(d) {
           <div class="ec-val">${fmt(measured, 5)} kWh</div>
         </div>
         <div class="energy-compare-item">
-          <div class="ec-tag">Reference</div>
+          <div class="ec-tag">Reference (10 min)</div>
           <div class="ec-val">${fmt(reference, 5)} kWh</div>
         </div>
       </div>
@@ -465,7 +470,7 @@ function cardHTML(nodeId, data) {
   const hStat = norm(d.humidity_status);
   const tempBad = tStat === "above range" || tStat === "below range";
   const humBad = hStat === "above range" || hStat === "below range";
-  const energyOver = d.last_closed_energy_above_reference === true;
+  const energyOver = d.energy_above_reference === true;
 
   const logs = data.logs || [];
 
@@ -510,11 +515,15 @@ function cardHTML(nodeId, data) {
       <div class="energy-strip">
         <div class="energy-cell">
           <div class="energy-label">Energy</div>
-          <div class="energy-value">${fmt(d.last_closed_energy_kwh, 5)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
+          <div class="energy-value">${fmt(d.total_energy_kwh_window, 5)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
+        </div>
+        <div class="energy-cell">
+          <div class="energy-label">Reference (10 min)</div>
+          <div class="energy-value">${fmt(d.kitchen_reference_kwh_window, 5)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
         </div>
         <div class="energy-cell">
           <div class="energy-label">Cost</div>
-          <div class="energy-value cost">€${fmt(d.last_closed_cost_eur, 4)}</div>
+          <div class="energy-value cost">€${fmt(d.total_cost_eur_window, 4)}</div>
         </div>
         <div class="energy-cell">
           <div class="energy-label">Cumulative cost</div>
