@@ -6,6 +6,7 @@
 <title>EcoComfort — Live Monitor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #14181C;
@@ -37,40 +38,29 @@
   }
 
   .topbar {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    display: flex; align-items: baseline; justify-content: space-between;
     padding: 28px clamp(20px, 5vw, 56px) 20px;
-    border-bottom: 1px solid var(--panel-border);
-    flex-wrap: wrap;
-    gap: 12px;
+    border-bottom: 1px solid var(--panel-border); flex-wrap: wrap; gap: 12px;
   }
-
   .topbar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
   .topbar h1 span { color: var(--text-tertiary); font-weight: 500; font-family: var(--mono); font-size: 13px; margin-left: 10px; }
-
   .status-line { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
-
-  .pulse-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: var(--green);
-    box-shadow: 0 0 0 0 rgba(34,197,94,0.6); animation: pulse 2.2s infinite;
-  }
-  @keyframes pulse { 0% {box-shadow:0 0 0 0 rgba(34,197,94,0.5);} 70% {box-shadow:0 0 0 6px rgba(34,197,94,0);} 100% {box-shadow:0 0 0 0 rgba(34,197,94,0);} }
+  .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(34,197,94,0.6); animation: pulse 2.2s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(34,197,94,0.5);}70%{box-shadow:0 0 0 6px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);} }
 
   main { padding: 28px clamp(20px, 5vw, 56px) 56px; max-width: 1280px; margin: 0 auto; }
-
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
 
-  .card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; padding: 22px 24px 20px; position: relative; overflow: hidden; }
-
+  .card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; padding: 22px 24px 20px; }
   .card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
   .node-name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
   .node-id { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
   .node-updated { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
 
   .warning-banner {
-    display: flex; align-items: flex-start; gap: 10px; background: var(--red-bg);
-    border: 1px solid rgba(239,68,68,0.35); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--red-bg); border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
   }
   .warning-banner.amber { background: var(--amber-bg); border-color: rgba(245,166,35,0.35); }
   .warning-banner .icon { font-size: 16px; line-height: 1.2; }
@@ -80,9 +70,6 @@
   .warning-banner .detail { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
   .warning-banner .action { font-size: 12px; color: var(--text-primary); font-weight: 500; margin-top: 4px; }
 
-  /* Readouts now show only the live instantaneous value - no rolling
-     avg10, since a last-10-readings average added no useful information
-     once classification itself moved to the instantaneous reading. */
   .readouts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
   .readout { border-radius: 8px; padding: 14px 16px; border: 1px solid transparent; }
   .readout.below   { background: var(--blue-bg);  border-color: rgba(59,130,246,0.25); }
@@ -125,12 +112,32 @@
   .energy-compare.over .energy-compare-item.measured .ec-val { color: var(--red); }
   .energy-compare-flag { margin-top: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--red); display: flex; align-items: center; gap: 6px; }
 
-  /* Windowed history log table */
-  .logs-table-wrap { margin-top: 18px; border: 1px solid var(--panel-border); border-radius: 8px; overflow: hidden; }
-  table.logs-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11.5px; }
-  table.logs-table th, table.logs-table td { padding: 7px 10px; text-align: right; white-space: nowrap; }
+  /* ---- Daily charts section ---- */
+  .day-section { margin-top: 22px; }
+  .day-heading {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 6px 0 10px; border-bottom: 1px solid var(--panel-border); margin-bottom: 12px;
+  }
+  .chart-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 6px;
+  }
+  @media (max-width: 700px) { .chart-row { grid-template-columns: 1fr; } }
+  .chart-box {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border);
+    border-radius: 8px; padding: 10px 12px 8px;
+  }
+  .chart-box-label {
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-tertiary); margin-bottom: 6px;
+  }
+  .chart-box canvas { display: block; width: 100% !important; }
+
+  .logs-table-wrap { margin-top: 12px; border: 1px solid var(--panel-border); border-radius: 8px; overflow: hidden; }
+  table.logs-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+  table.logs-table th, table.logs-table td { padding: 6px 9px; text-align: right; white-space: nowrap; }
   table.logs-table th:first-child, table.logs-table td:first-child { text-align: left; }
-  table.logs-table th { color: var(--text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9.5px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--panel-border); }
+  table.logs-table th { color: var(--text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--panel-border); }
   table.logs-table td { color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.03); }
   table.logs-table tr:last-child td { border-bottom: none; }
   table.logs-table td.flag-over { color: var(--red); font-weight: 600; }
@@ -140,7 +147,6 @@
   .error-state { color: var(--red); }
 
   footer { text-align: center; padding: 20px; font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); }
-
   @media (prefers-reduced-motion: reduce) { .pulse-dot { animation: none; } }
 </style>
 </head>
@@ -157,23 +163,20 @@
   </div>
 </main>
 
-<footer>Auto-refreshes every 20s · Temperature/humidity are live readings · Energy/cost update once every 10 minutes</footer>
+<footer>Auto-refreshes every 20s · Temperature/humidity are live readings · Energy/cost update every 10 minutes</footer>
 
 <script>
-// ---- Configuration ----
 const API_BASE = "https://osyjy9xcae.execute-api.eu-west-1.amazonaws.com/default/ecocomfort-api";
-
 const NODE_IDS = ["core2-lora-1", "core2-lora-2"];
-const NODE_LABELS = {
-  "core2-lora-1": "Node 1",
-  "core2-lora-2": "Node 2 (simulated)"
-};
-
+const NODE_LABELS = { "core2-lora-1": "Node 1", "core2-lora-2": "Node 2 (simulated)" };
 const REFRESH_MS = 20000;
-const LOGS_TO_SHOW = 12; // most recent windows shown in the log table
+const LOGS_TO_SHOW = 48; // keep up to 48 windows (~8 hours) for charts
+
+// Track Chart.js instances so we can destroy them before re-render
+// (Chart.js throws if you create a new chart on a canvas that already has one)
+const chartInstances = {};
 
 function norm(s) { return (s || "").toString().trim().toLowerCase(); }
-
 function statusClass(status) {
   const s = norm(status);
   if (s === "below range") return "below";
@@ -181,12 +184,7 @@ function statusClass(status) {
   if (s === "above range") return "above";
   return "unknown";
 }
-
-function fmt(value, digits = 1) {
-  if (value === null || value === undefined) return "—";
-  return Number(value).toFixed(digits);
-}
-
+function fmt(v, d = 1) { return (v === null || v === undefined) ? "—" : Number(v).toFixed(d); }
 function timeAgo(tsMs) {
   const diff = Date.now() - Number(tsMs);
   if (diff < 0) return "just now";
@@ -194,18 +192,115 @@ function timeAgo(tsMs) {
   if (s < 60) return `${s}s ago`;
   const m = Math.floor(s / 60);
   if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  return `${h}h ago`;
+  return `${Math.floor(m / 60)}h ago`;
 }
-
-function fmtClock(tsMs) {
+function fmtTime(tsMs) {
+  return new Date(Number(tsMs)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+function fmtDay(tsMs) {
+  return new Date(Number(tsMs)).toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+}
+function dayKey(tsMs) {
   const d = new Date(Number(tsMs));
-  return d.toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-// Warning banner: still purely a function of the LATEST instantaneous
-// temp_status / humidity_status, exactly as before - alerts never wait
-// for a 10-minute window to close.
+// Group log entries by calendar day (local time), sorted newest day first.
+function groupByDay(logs) {
+  const days = {};
+  for (const l of logs) {
+    const k = dayKey(l.window_start_ts);
+    if (!days[k]) days[k] = [];
+    days[k].push(l);
+  }
+  // Sort each day's entries oldest-first (for left-to-right chart x-axis)
+  for (const k of Object.keys(days)) days[k].sort((a, b) => Number(a.window_start_ts) - Number(b.window_start_ts));
+  // Return days sorted newest-first
+  return Object.entries(days).sort((a, b) => b[0].localeCompare(a[0]));
+}
+
+// Shared Chart.js default options for the dark theme
+function chartDefaults(yLabel, color, yMin, yMax) {
+  return {
+    type: 'line',
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1C2228',
+          borderColor: '#2A323A',
+          borderWidth: 1,
+          titleColor: '#8B96A1',
+          bodyColor: '#E8ECEF',
+          titleFont: { family: "'JetBrains Mono', monospace", size: 10 },
+          bodyFont: { family: "'JetBrains Mono', monospace", size: 11 },
+          callbacks: {
+            title: items => fmtTime(items[0].label),
+            label: item => `${yLabel}: ${item.formattedValue}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#5A6570', font: { family: "'JetBrains Mono', monospace", size: 9 },
+            maxTicksLimit: 6,
+            callback: function(val, idx) { return fmtTime(this.getLabelForValue(val)); }
+          },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          border: { color: '#2A323A' }
+        },
+        y: {
+          ticks: { color: '#5A6570', font: { family: "'JetBrains Mono', monospace", size: 9 }, maxTicksLimit: 5 },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          border: { color: '#2A323A' },
+          ...(yMin !== undefined ? { min: yMin } : {}),
+          ...(yMax !== undefined ? { max: yMax } : {})
+        }
+      }
+    },
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        borderColor: color,
+        backgroundColor: color.replace(')', ', 0.08)').replace('rgb', 'rgba'),
+        borderWidth: 1.5,
+        pointRadius: 2.5,
+        pointBackgroundColor: color,
+        tension: 0.3,
+        fill: true
+      }]
+    }
+  };
+}
+
+function buildChart(canvasId, entries, valueKey, yLabel, color, yMin, yMax) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  // Destroy previous instance on this canvas if it exists
+  if (chartInstances[canvasId]) {
+    chartInstances[canvasId].destroy();
+    delete chartInstances[canvasId];
+  }
+
+  const labels = entries.map(e => e.window_start_ts);
+  const values = entries.map(e => {
+    const v = e[valueKey];
+    return (v === null || v === undefined) ? null : Number(v);
+  });
+
+  const cfg = chartDefaults(yLabel, color, yMin, yMax);
+  cfg.data.labels = labels;
+  cfg.data.datasets[0].data = values;
+
+  chartInstances[canvasId] = new Chart(canvas, cfg);
+}
+
 function warningBannerHTML(d) {
   const tStat = norm(d.temp_status);
   const hStat = norm(d.humidity_status);
@@ -214,13 +309,11 @@ function warningBannerHTML(d) {
   if (!tempBad && !humBad) return "";
 
   const severity = (tStat === "above range" || hStat === "above range") ? "" : "amber";
-
   const actions = [];
   if (tStat === "above range") actions.push("Open window / use AC");
   if (tStat === "below range") actions.push("Close window / use heating");
   if (hStat === "above range") actions.push("Ventilate / dehumidify");
   if (hStat === "below range") actions.push("Use humidifier");
-
   const parts = [];
   if (tempBad) parts.push(`Temperature ${tStat}`);
   if (humBad) parts.push(`Humidity ${hStat}`);
@@ -230,23 +323,17 @@ function warningBannerHTML(d) {
       <div class="icon">⚠</div>
       <div class="body">
         <div class="title">Comfort warning</div>
-        <div class="detail">${parts.join(" · ")} (based on latest reading)</div>
+        <div class="detail">${parts.join(" · ")} (latest reading)</div>
         <div class="action">${actions.join("  ·  ")}</div>
       </div>
     </div>`;
 }
 
-// Energy-vs-kitchen-reference comparison, now sourced from the *windowed*
-// fields (only updated once per closed 10-min window).
 function energyCompareHTML(d) {
-  const measured = d.total_energy_kwh_window;
-  const reference = d.kitchen_reference_kwh_window;
-  const over = d.energy_above_reference === true;
-
-  if (measured === null || measured === undefined || reference === null || reference === undefined) {
-    return "";
-  }
-
+  const measured = d.last_closed_energy_kwh;
+  const reference = d.kitchen_reference_kwh_per_bucket;
+  const over = d.last_closed_energy_above_reference === true;
+  if (measured === null || measured === undefined || reference === null || reference === undefined) return "";
   return `
     <div class="energy-compare ${over ? 'over' : ''}">
       <div class="energy-compare-label">Energy vs. kitchen reference (last closed 10-min window)</div>
@@ -264,36 +351,95 @@ function energyCompareHTML(d) {
     </div>`;
 }
 
-function logsTableHTML(logs) {
+// Renders the per-day chart + log rows sections for one node.
+// Charts are built imperatively after the HTML is inserted into the DOM.
+function buildDaySections(nodeId, logs) {
   if (!logs || logs.length === 0) {
-    return `<div class="logs-table-wrap"><div class="logs-empty">No completed 10-minute windows yet</div></div>`;
+    return `<div style="color:var(--text-tertiary);font-size:12px;margin-top:12px;">No 10-minute windows logged yet. First window appears after the first bucket closes.</div>`;
   }
-  const rows = logs.slice(-LOGS_TO_SHOW).reverse().map(l => {
-    const over = l.energy_above_reference === true;
-    return `
-      <tr>
-        <td>${fmtClock(l.window_start_ts)}</td>
+
+  const grouped = groupByDay(logs);
+  let html = '';
+
+  grouped.forEach(([dayK, entries], dayIdx) => {
+    const dayLabel = fmtDay(entries[0].window_start_ts);
+    const chartSuffix = `${nodeId.replace(/[^a-z0-9]/gi, '')}_day${dayIdx}`;
+
+    // Log table rows for this day
+    const rows = [...entries].reverse().map(l => {
+      const over = l.energy_above_reference === true;
+      return `<tr>
+        <td>${fmtTime(l.window_start_ts)}</td>
         <td>${fmt(l.avg_temp, 1)}°C</td>
         <td>${fmt(l.avg_humidity, 1)}%</td>
-        <td>${fmt(l.total_energy_kwh, 5)} kWh</td>
-        <td>€${fmt(l.total_cost_eur, 4)}</td>
+        <td>${fmt(l.total_energy_kwh !== undefined ? l.total_energy_kwh : l.energy_kwh, 5)} kWh</td>
+        <td>€${fmt(l.total_cost_eur !== undefined ? l.total_cost_eur : l.cost_eur, 4)}</td>
         <td>${l.sample_count ?? "—"}</td>
-        <td class="${over ? 'flag-over' : ''}">${over ? 'Above ref' : 'OK'}</td>
+        <td class="${over ? 'flag-over' : ''}">${over ? '↑ Above ref' : 'OK'}</td>
       </tr>`;
-  }).join("");
+    }).join('');
 
-  return `
-    <div class="logs-table-wrap">
-      <table class="logs-table">
-        <thead>
-          <tr>
-            <th>Window start</th><th>Avg temp</th><th>Avg humidity</th>
-            <th>Energy</th><th>Cost</th><th>Samples</th><th>vs ref</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+    html += `
+      <div class="day-section">
+        <div class="day-heading">${dayLabel}</div>
+
+        <div class="chart-row">
+          <div class="chart-box">
+            <div class="chart-box-label">Avg energy / 10 min (kWh)</div>
+            <div style="height:110px;"><canvas id="chart_energy_${chartSuffix}"></canvas></div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-label">Avg temperature (°C)</div>
+            <div style="height:110px;"><canvas id="chart_temp_${chartSuffix}"></canvas></div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-box-label">Avg humidity (%)</div>
+            <div style="height:110px;"><canvas id="chart_hum_${chartSuffix}"></canvas></div>
+          </div>
+        </div>
+
+        <div class="logs-table-wrap" style="margin-top:8px;">
+          <table class="logs-table">
+            <thead><tr>
+              <th>Time</th><th>Avg temp</th><th>Avg humidity</th>
+              <th>Energy</th><th>Cost</th><th>Samples</th><th>vs ref</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  });
+
+  return html;
+}
+
+// After HTML is injected, call this to actually render the Chart.js canvases.
+function renderCharts(nodeId, logs) {
+  if (!logs || logs.length === 0) return;
+  const grouped = groupByDay(logs);
+
+  grouped.forEach(([dayK, entries], dayIdx) => {
+    const chartSuffix = `${nodeId.replace(/[^a-z0-9]/gi, '')}_day${dayIdx}`;
+
+    // Normalise field names - log table uses energy_kwh / cost_eur from
+    // the ecocomfort_log DynamoDB table, but may also come as
+    // total_energy_kwh / total_cost_eur from an older API shape.
+    const normalised = entries.map(e => ({
+      ...e,
+      _energy: e.total_energy_kwh !== undefined ? e.total_energy_kwh : e.energy_kwh,
+      _temp:   e.avg_temp !== undefined ? e.avg_temp : e.avg_temp_c,
+      _hum:    e.avg_humidity !== undefined ? e.avg_humidity : e.avg_humidity_pct,
+    }));
+
+    buildChart(`chart_energy_${chartSuffix}`, normalised, '_energy',
+      'kWh', 'rgb(245, 166, 35)', 0);
+
+    buildChart(`chart_temp_${chartSuffix}`, normalised, '_temp',
+      '°C', 'rgb(239, 68, 68)');
+
+    buildChart(`chart_hum_${chartSuffix}`, normalised, '_hum',
+      '%', 'rgb(59, 130, 246)', 0, 100);
+  });
 }
 
 function cardHTML(nodeId, data) {
@@ -306,7 +452,7 @@ function cardHTML(nodeId, data) {
             <div class="node-id">${nodeId}</div>
           </div>
         </div>
-        <div class="empty-state" style="padding: 30px 0;">No data received yet</div>
+        <div class="empty-state" style="padding:30px 0;">No data received yet</div>
       </div>`;
   }
 
@@ -315,12 +461,13 @@ function cardHTML(nodeId, data) {
   const humClass = statusClass(d.humidity_status);
   const machineOn = d.machine_power && Number(d.machine_power) > 0;
   const lampOn = d.lamp_power && Number(d.lamp_power) > 0;
-
   const tStat = norm(d.temp_status);
   const hStat = norm(d.humidity_status);
   const tempBad = tStat === "above range" || tStat === "below range";
   const humBad = hStat === "above range" || hStat === "below range";
-  const energyOver = d.energy_above_reference === true;
+  const energyOver = d.last_closed_energy_above_reference === true;
+
+  const logs = data.logs || [];
 
   return `
     <div class="card">
@@ -356,18 +503,18 @@ function cardHTML(nodeId, data) {
         <div class="pill ${lampOn ? 'active' : ''}"><span class="dot"></span>Lamp ${lampOn ? '15W ON' : 'OFF'}</div>
         ${tempBad ? `<div class="pill warn"><span class="dot"></span>Temp warning sent</div>` : ``}
         ${humBad ? `<div class="pill warn"><span class="dot"></span>Humidity warning sent</div>` : ``}
-        ${energyOver ? `<div class="pill warn"><span class="dot"></span>Above energy than reference</div>` : ``}
+        ${energyOver ? `<div class="pill warn"><span class="dot"></span>Above energy reference</div>` : ``}
       </div>
 
       <div class="section-label">Last closed 10-minute window</div>
       <div class="energy-strip">
         <div class="energy-cell">
           <div class="energy-label">Energy</div>
-          <div class="energy-value">${fmt(d.total_energy_kwh_window, 5)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
+          <div class="energy-value">${fmt(d.last_closed_energy_kwh, 5)} <span style="font-size:11px;color:var(--text-tertiary)">kWh</span></div>
         </div>
         <div class="energy-cell">
           <div class="energy-label">Cost</div>
-          <div class="energy-value cost">€${fmt(d.total_cost_eur_window, 4)}</div>
+          <div class="energy-value cost">€${fmt(d.last_closed_cost_eur, 4)}</div>
         </div>
         <div class="energy-cell">
           <div class="energy-label">Cumulative cost</div>
@@ -377,8 +524,8 @@ function cardHTML(nodeId, data) {
 
       ${energyCompareHTML(d)}
 
-      <div class="section-label" style="margin-top:18px;">Window history</div>
-      ${logsTableHTML(data.logs)}
+      <div class="section-label" style="margin-top:18px;">Daily history</div>
+      ${buildDaySections(nodeId, logs)}
     </div>`;
 }
 
@@ -387,7 +534,7 @@ async function fetchNode(nodeId) {
     const res = await fetch(`${API_BASE}?id=${encodeURIComponent(nodeId)}&limit=1&logs_limit=${LOGS_TO_SHOW}`);
     if (!res.ok) return null;
     return await res.json();
-  } catch (e) {
+  } catch(e) {
     console.error("Fetch failed for", nodeId, e);
     return null;
   }
@@ -401,6 +548,11 @@ async function refresh() {
 
   const grid = document.getElementById("grid");
   grid.innerHTML = results.map((data, i) => cardHTML(NODE_IDS[i], data)).join("");
+
+  // Render charts AFTER HTML is in the DOM
+  results.forEach((data, i) => {
+    if (data && data.logs) renderCharts(NODE_IDS[i], data.logs);
+  });
 
   statusText.textContent = `Last updated ${new Date().toLocaleTimeString()}`;
 }
